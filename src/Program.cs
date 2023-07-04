@@ -9,12 +9,12 @@ using DSharpPlus.CommandAll.Parsers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using @RepositoryOwner.@RepositoryName.Events;
+using DSharpPlus.DSharpPlusHelper.Events;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 
-namespace @RepositoryOwner.@RepositoryName
+namespace DSharpPlus.DSharpPlusHelper
 {
     public sealed class Program
     {
@@ -26,7 +26,7 @@ namespace @RepositoryOwner.@RepositoryName
 #if DEBUG
                 .AddJsonFile("config.debug.json", true, true)
 #endif
-                .AddEnvironmentVariables("@RepositoryName_")
+                .AddEnvironmentVariables("DSharpPlusHelper_")
                 .Build());
 
             services.AddSerilog((services, loggerConfiguration) =>

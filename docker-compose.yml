@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-  @RepositoryNameLower:
+  dsharpplushelper:
     build: .
-    #image: ghcr.io/@RepositoryFullNameLower:latest
+    #image: ghcr.io/dsharpplus/dsharpplushelper:latest
     restart: unless-stopped
     env_file: .env
     volumes:

@@ -5,13 +5,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup>
-    <Authors>@RepositoryOwner</Authors>
-    <Description>@RepositoryDescription</Description>
-    <PackageId>@RepositoryOwner.@RepositoryName</PackageId>
+    <Authors>DSharpPlus</Authors>
+    <Description>A helper bot for the Discord server.</Description>
+    <PackageId>DSharpPlus.DSharpPlusHelper</PackageId>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/@RepositoryFullName</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/@RepositoryFullName</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/DSharpPlus/DSharpPlusHelper</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/DSharpPlus/DSharpPlusHelper</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>

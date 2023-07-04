@@ -1,3 +1,3 @@
-# @RepositoryName
+# DSharpPlusHelper
 
-@RepositoryDescription
+A helper bot for the Discord server.

@@ -40,5 +40,5 @@ jobs:
           push: true
           build-args: VERSION=${{ steps.previoustag.outputs.tag }}
           tags: |
-            ghcr.io/@RepositoryFullNameLower:latest
-            ghcr.io/@RepositoryFullNameLower:${{ steps.previoustag.outputs.tag }}
+            ghcr.io/dsharpplus/dsharpplushelper:latest
+            ghcr.io/dsharpplus/dsharpplushelper:${{ steps.previoustag.outputs.tag }}
