@@ -1,5 +1,4 @@
 using System;
-using DSharpPlus;
 
 namespace DSharpPlus.DSharpPlusHelper.Events
 {

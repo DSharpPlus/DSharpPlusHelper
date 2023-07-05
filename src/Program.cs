@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
-using DSharpPlus;
 using DSharpPlus.CommandAll;
 using DSharpPlus.CommandAll.Parsers;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +12,7 @@ using DSharpPlus.DSharpPlusHelper.Events;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
+using Octokit;
 
 namespace DSharpPlus.DSharpPlusHelper
 {
@@ -21,7 +21,7 @@ namespace DSharpPlus.DSharpPlusHelper
         public static async Task Main(string[] args)
         {
             IServiceCollection services = new ServiceCollection();
-            services.AddSingleton(services => new ConfigurationBuilder()
+            services.AddSingleton<IConfiguration>(services => new ConfigurationBuilder()
                 .AddJsonFile("config.json", true, true)
 #if DEBUG
                 .AddJsonFile("config.debug.json", true, true)
@@ -29,11 +29,11 @@ namespace DSharpPlus.DSharpPlusHelper
                 .AddEnvironmentVariables("DSharpPlusHelper_")
                 .Build());
 
-            services.AddSerilog((services, loggerConfiguration) =>
+            services.AddLogging(logger =>
             {
                 const string loggingFormat = "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u4}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
-                IConfiguration configuration = services.GetRequiredService<IConfiguration>();
-                loggerConfiguration
+                IConfiguration configuration = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+                LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
                     .MinimumLevel.Is(configuration.GetValue("logging:level", LogEventLevel.Debug))
                     .WriteTo.Console(outputTemplate: loggingFormat, formatProvider: CultureInfo.InvariantCulture, theme: new AnsiConsoleTheme(new Dictionary<ConsoleThemeStyle, string>
                     {
@@ -71,9 +71,25 @@ namespace DSharpPlus.DSharpPlusHelper
 
                     loggerConfiguration.MinimumLevel.Override(logOverride.Key, logEventLevel);
                 }
+
+                // Set Log.Logger for a static reference to the logger
+                logger.AddSerilog(loggerConfiguration.CreateLogger());
             });
 
             Assembly currentAssembly = typeof(Program).Assembly;
+            services.AddSingleton(services =>
+            {
+                IConfiguration configuration = services.GetRequiredService<IConfiguration>();
+                string? token = configuration["github:token"];
+                ProductHeaderValue productHeaderValue = new(currentAssembly.GetName().Name, currentAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.1.0");
+                return token is null
+                    ? new GitHubClient(productHeaderValue)
+                    : new GitHubClient(productHeaderValue)
+                    {
+                        Credentials = new Credentials(token, AuthenticationType.Bearer)
+                    };
+            });
+
             services.AddSingleton((services) =>
             {
                 DiscordEventManager eventManager = new(services);
@@ -81,25 +97,25 @@ namespace DSharpPlus.DSharpPlusHelper
                 return eventManager;
             });
 
-            services.AddSingleton(async services =>
+            services.AddSingleton(serviceProvider =>
             {
-                IConfiguration configuration = services.GetRequiredService<IConfiguration>();
-                DiscordEventManager eventManager = services.GetRequiredService<DiscordEventManager>();
+                IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                DiscordEventManager eventManager = serviceProvider.GetRequiredService<DiscordEventManager>();
                 DiscordShardedClient shardedClient = new(new DiscordConfiguration()
                 {
-                    Token = configuration.GetValue<string>("discord:token")!,
-                    Intents = eventManager.Intents,
-                    LoggerFactory = services.GetRequiredService<ILoggerFactory>()
+                    Token = configuration.GetValue<string>("discord:token") ?? throw new InvalidOperationException("No Discord token was provided."),
+                    Intents = DiscordIntents.AllUnprivileged | eventManager.Intents,
+                    LoggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>()
                 });
 
                 eventManager.RegisterEventHandlers(shardedClient);
-                IReadOnlyDictionary<int, CommandAllExtension> commandAllShards = await shardedClient.UseCommandAllAsync(new CommandAllConfiguration()
+                IReadOnlyDictionary<int, CommandAllExtension> commandAllShards = shardedClient.UseCommandAllAsync(new CommandAllConfiguration(services)
                 {
 #if DEBUG
                     DebugGuildId = configuration.GetValue<ulong?>("discord:debug_guild_id"),
 #endif
                     PrefixParser = new PrefixParser(configuration.GetSection("discord:prefixes").Get<string[]>() ?? new[] { ">>" })
-                });
+                }).GetAwaiter().GetResult();
 
                 foreach (CommandAllExtension commandAll in commandAllShards.Values)
                 {

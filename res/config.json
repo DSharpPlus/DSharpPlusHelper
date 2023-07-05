@@ -6,6 +6,11 @@
             ">>"
         ]
     },
+    "github": {
+        "repository_owner": "",
+        "repository_name": "",
+        "token": ""
+    },
     "logging": {
         "level": "Debug",
         "overrides": {
