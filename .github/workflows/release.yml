@@ -11,6 +11,10 @@ on:
         required: true
         default: latest
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   publish-docker-image:
     name: Publish Docker Image
