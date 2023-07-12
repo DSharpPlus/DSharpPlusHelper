@@ -1,15 +1,15 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Linq;
-using DSharpPlus.EventArgs;
 using DSharpPlus.Entities;
-using System;
-using Octokit;
-using System.Collections.Generic;
+using DSharpPlus.EventArgs;
 using Microsoft.Extensions.Configuration;
-using System.Net;
 using Microsoft.Extensions.Logging;
-using System.Text;
+using Octokit;
 
 namespace DSharpPlus.DSharpPlusHelper.Events.EventHandlers
 {

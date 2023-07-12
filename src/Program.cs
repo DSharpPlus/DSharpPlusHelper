@@ -5,14 +5,14 @@ using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus.CommandAll;
 using DSharpPlus.CommandAll.Parsers;
+using DSharpPlus.DSharpPlusHelper.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using DSharpPlus.DSharpPlusHelper.Events;
+using Octokit;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
-using Octokit;
 
 namespace DSharpPlus.DSharpPlusHelper
 {
