@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using System.Net;
 using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace DSharpPlus.DSharpPlusHelper.Events.EventHandlers
 {
@@ -109,6 +110,7 @@ namespace DSharpPlus.DSharpPlusHelper.Events.EventHandlers
                     Url = issue.HtmlUrl
                 };
 
+                StringBuilder footerBuilder = new();
                 if (pullRequest is not null)
                 {
                     embedBuilder.Color = pullRequest.State.Value switch
@@ -120,17 +122,21 @@ namespace DSharpPlus.DSharpPlusHelper.Events.EventHandlers
                         _ => DiscordColor.Yellow,
                     };
 
-                    embedBuilder.Footer = new()
+                    footerBuilder.AppendFormat("Pull Request #{0}, ", issue.Number);
+                    footerBuilder.AppendFormat("{0}, ", pullRequest.State.Value switch
                     {
-                        Text = $"Pull Request #{issue.Number}, {issue.State.Value switch
-                        {
-                            ItemState.Closed when pullRequest.Merged => "Merged",
-                            ItemState.Closed => "Closed",
-                            ItemState.Open when pullRequest.Draft => "Draft",
-                            ItemState.Open => "Open",
-                            _ => issue.State.StringValue,
-                        }}, {issue.Comments} comment{(issue.Comments == 1 ? "" : "s")}, {pullRequest.Commits:N0} commit{(pullRequest.Commits == 1 ? "" : "s")}",
-                    };
+                        ItemState.Closed when pullRequest.Merged => "Merged",
+                        ItemState.Closed => "Closed",
+                        ItemState.Open when pullRequest.Draft => "Draft",
+                        ItemState.Open => "Open",
+                        _ => issue.State.StringValue
+                    });
+
+                    footerBuilder.AppendFormat("{0} comment{1}, ", issue.Comments, issue.Comments == 1 ? "" : "s");
+                    footerBuilder.AppendFormat("{0} commit{1}\n", pullRequest.Commits, pullRequest.Commits == 1 ? "" : "s");
+                    footerBuilder.AppendFormat("{0} changed file{1}, ", pullRequest.ChangedFiles, pullRequest.ChangedFiles == 1 ? "" : "s");
+                    footerBuilder.AppendFormat("{0} addition{1}, ", pullRequest.Additions, pullRequest.Additions == 1 ? "" : "s");
+                    footerBuilder.AppendFormat("{0} deletion{1}", pullRequest.Deletions, pullRequest.Deletions == 1 ? "" : "s");
                 }
                 else
                 {
@@ -142,29 +148,48 @@ namespace DSharpPlus.DSharpPlusHelper.Events.EventHandlers
                         _ => DiscordColor.Yellow,
                     };
 
-                    embedBuilder.Footer = new()
+                    footerBuilder.AppendFormat("Issue #{0}, ", issue.Number);
+                    footerBuilder.AppendFormat("{0}, ", issue.State.Value switch
                     {
-                        Text = $"Issue #{issue.Number}, {issue.State.Value switch
-                        {
-                            ItemState.Closed => "Closed",
-                            ItemState.Open => "Open",
-                            _ => issue.State.StringValue,
-                        }}, {issue.Comments} comment{(issue.Comments == 1 ? "" : "s")}",
-                    };
+                        ItemState.Closed when issue.StateReason?.Value == ItemStateReason.Completed => "Closed as Completed",
+                        ItemState.Closed when issue.StateReason?.Value == ItemStateReason.NotPlanned => "Closed as Not Planned",
+                        ItemState.Closed => "Closed",
+                        ItemState.Open => "Open",
+                        _ => issue.State.StringValue
+                    });
+
+                    footerBuilder.AppendFormat("{0} comment{1}\n", issue.Comments, issue.Comments == 1 ? "" : "s");
+                    footerBuilder.AppendFormat("{0} reaction{1}", issue.Reactions.TotalCount, issue.Reactions.TotalCount == 1 ? "" : "s");
+
+                    if (issue.State.Value == ItemState.Closed)
+                    {
+                        footerBuilder.AppendFormat(", Closed by @{0}", issue.ClosedBy.Login);
+                    }
+
+                    if (issue.Locked)
+                    {
+                        footerBuilder.AppendFormat(", Lock Reason: {0}", issue.ActiveLockReason!.Value.Value.ToString());
+                    }
                 }
 
+                embedBuilder.Footer = new() { Text = footerBuilder.ToString() };
                 messageBuilder.AddEmbed(embedBuilder);
             }
 
-            if (missingIssues.Count > 0)
+            if (missingIssues.Count == 1)
             {
-                messageBuilder.Content = missingIssues.Count switch
+                messageBuilder.Content = $"Issue `#{missingIssues[0]}` was not found.";
+            }
+            else if (missingIssues.Count > 1)
+            {
+                StringBuilder missingIssuesBuilder = new("Issues ");
+                for (int i = 0; i < missingIssues.Count - 1; i++)
                 {
-                    1 => $"Issue `#{missingIssues[0]}` was not found.",
-                    2 => $"Issues `#{missingIssues[0]}` and `#{missingIssues[1]}` were not found.",
-                    3 => $"Issues `#{missingIssues[0]}`, `#{missingIssues[1]}`, and `#{missingIssues[2]}` were not found.",
-                    _ => $"The following issues weren't found: `#{string.Join("`, `#", missingIssues)}`."
-                };
+                    missingIssuesBuilder.AppendFormat("`#{0}`", missingIssues[i]);
+                    missingIssuesBuilder.Append(i + 2 == missingIssues.Count ? " and " : ", ");
+                }
+                missingIssuesBuilder.AppendFormat("`#{0}` don't seem to exist.", missingIssues[^1]);
+                messageBuilder.Content = missingIssuesBuilder.ToString();
             }
 
             messageBuilder.WithAllowedMentions(Mentions.None);
