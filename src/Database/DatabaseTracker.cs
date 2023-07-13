@@ -6,7 +6,7 @@ using Microsoft.Data.Sqlite;
 
 namespace DSharpPlus.DSharpPlusHelper.Database
 {
-    public sealed class DatabaseTracker
+    public static class DatabaseTracker
     {
         public static bool CreateTag(string name, string content, IReadOnlyList<string> aliases, IReadOnlyList<Ulid> history)
         {
