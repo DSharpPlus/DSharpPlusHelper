@@ -1,6 +1,5 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
-using DSharpPlus.DSharpPlusHelper.Commands;
 using Microsoft.Data.Sqlite;
 
 namespace DSharpPlus.DSharpPlusHelper.Database
@@ -93,5 +92,16 @@ namespace DSharpPlus.DSharpPlusHelper.Database
             command.Prepare();
             return command;
         }
+    }
+
+    public enum TagOperations
+    {
+        Create,
+        ReadContent,
+        ReadAll,
+        Update,
+        Delete,
+        List,
+        SetAliases,
     }
 }
