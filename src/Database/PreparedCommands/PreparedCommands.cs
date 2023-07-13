@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using DSharpPlus.DSharpPlusHelper.Commands;
 using Microsoft.Data.Sqlite;
 
 namespace DSharpPlus.DSharpPlusHelper.Database

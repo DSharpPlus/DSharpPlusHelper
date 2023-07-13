@@ -20,7 +20,6 @@ namespace DSharpPlus.DSharpPlusHelper.Database
                 [TagOperations.Update] = UpdateTagCommand(),
                 [TagOperations.Delete] = DeleteTagCommand(),
                 [TagOperations.List] = ListTagCommand(),
-                [TagOperations.SetAliases] = SetAliasesTagCommand(),
             }.ToFrozenDictionary(optimizeForReading: true);
         }
 
@@ -82,16 +81,6 @@ namespace DSharpPlus.DSharpPlusHelper.Database
             command.Prepare();
             return command;
         }
-
-        private static SqliteCommand SetAliasesTagCommand()
-        {
-            SqliteCommand command = Connection.CreateCommand();
-            command.CommandText = "UPDATE tags SET aliases = @aliases WHERE name = @name";
-            command.Parameters.Add(CreateParameter(command, "@aliases", SqliteType.Text));
-            command.Parameters.Add(CreateParameter(command, "@name", SqliteType.Text));
-            command.Prepare();
-            return command;
-        }
     }
 
     public enum TagOperations
@@ -101,7 +90,6 @@ namespace DSharpPlus.DSharpPlusHelper.Database
         ReadAll,
         Update,
         Delete,
-        List,
-        SetAliases,
+        List
     }
 }
