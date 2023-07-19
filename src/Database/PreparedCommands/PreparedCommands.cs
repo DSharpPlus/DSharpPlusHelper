@@ -7,7 +7,7 @@ namespace DSharpPlus.DSharpPlusHelper.Database
     public static partial class PreparedCommands
     {
         private static readonly SqliteConnection Connection;
-        public static readonly FrozenDictionary<TagOperations, SqliteCommand> Tags = PrepareTags();
+        public static readonly FrozenDictionary<TagOperations, SqliteCommand> Tags;
 
         static PreparedCommands()
         {
@@ -15,10 +15,12 @@ namespace DSharpPlus.DSharpPlusHelper.Database
             {
                 Cache = SqliteCacheMode.Shared,
                 DataSource = "res/database.db",
-                Mode = SqliteOpenMode.ReadWriteCreate,
+                Mode = SqliteOpenMode.Memory,
                 Pooling = true
             }.ConnectionString);
             Connection.Open();
+
+            Tags = PrepareTags();
         }
 
         private static SqliteParameter CreateParameter(SqliteCommand command, string name, SqliteType type, int size = default)

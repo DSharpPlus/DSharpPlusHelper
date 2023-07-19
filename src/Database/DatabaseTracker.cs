@@ -8,19 +8,19 @@ namespace DSharpPlus.DSharpPlusHelper.Database
 {
     public static class DatabaseTracker
     {
-        public static bool CreateTag(string name, string content, IReadOnlyList<string> aliases, IReadOnlyList<Ulid> history)
+        public static bool CreateTag(string name, string content, IReadOnlyList<string>? aliases = null, IReadOnlyList<TagHistory>? history = null)
         {
             ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
             ArgumentException.ThrowIfNullOrEmpty(content, nameof(content));
-            ArgumentNullException.ThrowIfNull(aliases, nameof(aliases));
-            ArgumentNullException.ThrowIfNull(history, nameof(history));
+            aliases ??= Array.Empty<string>();
+            history ??= Array.Empty<TagHistory>();
 
             SqliteCommand command = PreparedCommands.Tags[TagOperations.Create];
             command.Parameters["@name"].Value = name;
             command.Parameters["@content"].Value = content;
             command.Parameters["@aliases"].Value = SerializeToJson(aliases);
             command.Parameters["@history"].Value = SerializeToJson(history);
-            return command.ExecuteNonQuery() > 1;
+            return command.ExecuteNonQuery() > 0;
         }
 
         public static string? GetTagContent(string name)
@@ -56,7 +56,7 @@ namespace DSharpPlus.DSharpPlusHelper.Database
         }
 
 
-        public static bool UpdateTag(string name, string content, IReadOnlyList<string> aliases, IReadOnlyList<Ulid> history)
+        public static bool UpdateTag(string name, string content, IReadOnlyList<string> aliases, IReadOnlyList<TagHistory> history)
         {
             ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
             ArgumentException.ThrowIfNullOrEmpty(content, nameof(content));
@@ -68,7 +68,7 @@ namespace DSharpPlus.DSharpPlusHelper.Database
             command.Parameters["@content"].Value = content;
             command.Parameters["@aliases"].Value = SerializeToJson(aliases);
             command.Parameters["@history"].Value = SerializeToJson(history);
-            return command.ExecuteNonQuery() > 1;
+            return command.ExecuteNonQuery() > 0;
         }
 
         public static bool DeleteTag(string name)
@@ -77,7 +77,7 @@ namespace DSharpPlus.DSharpPlusHelper.Database
 
             SqliteCommand command = PreparedCommands.Tags[TagOperations.Delete];
             command.Parameters["@name"].Value = name;
-            return command.ExecuteNonQuery() > 1;
+            return command.ExecuteNonQuery() > 0;
         }
 
         public static IEnumerable<string> GetAllTags()
